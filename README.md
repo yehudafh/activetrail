@@ -1,0 +1,2 @@
+# activetrail
+Laravel Activetrail

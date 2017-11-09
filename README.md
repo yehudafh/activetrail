@@ -6,7 +6,7 @@
 
 You may use Composer to install Laravel Activetrail into your Laravel project:
 
-    composer require yehudafh/laravel-activetrail
+    composer require yehudafh/active-trail
 
 ### Configuration
 

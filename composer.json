@@ -1,0 +1,45 @@
+{
+    "name": "yehudafh/active-trail",
+    "description": "active-trail.",
+    "keywords": [
+        "laravel",
+        "active trail"
+    ],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "yehuda fahima",
+            "email": "yehudafh@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.0",
+        "guzzlehttp/guzzle": "~6.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Yehudafh\\ActiveTrail\\": "src/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "1.0-dev"
+        },
+        "laravel": {
+            "providers": [
+                "Yehudafh\\ActiveTrail\\ActiveTrailServiceProvider"
+            ],
+            "aliases": {
+                "ActiveTrail": "Yehudafh\\ActiveTrail\\Facades\\ActiveTrail"
+            }
+        }
+    },
+    "suggest": {
+        "guzzlehttp/guzzle": "Required to use the Slack transport (~6.0)"
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "prefer-stable": true,
+    "minimum-stability": "dev"
+}

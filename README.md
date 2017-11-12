@@ -23,8 +23,6 @@ ActiveTrail::email('test@example.com')
     # Optional ->
     // ->sms('+972000000000')
     // ->status()
-    // ->email()
-    // ->sms()
     // ->fullname('test test') #or  ->firstName()->lastName()
     // ->street()
     // ->zipCode()

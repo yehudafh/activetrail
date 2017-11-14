@@ -39,7 +39,7 @@ class ActiveTrail
     {
         $this->key = $config['api_key'];
 
-        $this->softGroup = $config['softGroup'];
+        $this->softGroup = $config['soft_group'];
 
         $this->fields = array_merge($this->fields, $config['fields']);
     }

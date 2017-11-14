@@ -170,7 +170,11 @@ class ActiveTrail
 
         $response = $this->addToGroup($this->softGroup);
 
-        return ['groupsRemoved' => $groups, 'response' => $response];
+        $response['state'] = 'Soft' . $response['state'];
+
+        $response['groupsRemoved'] = $groups;
+
+        return $response;
     }
 
     public function __call($name, $arguments)

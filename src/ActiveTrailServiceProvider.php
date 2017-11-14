@@ -28,9 +28,7 @@ class ActiveTrailServiceProvider extends ServiceProvider
     public function register()
     {
         $this->app->singleton('activetrail', function () {
-            $fields = config('activetrail.fields');
-
-            return new ActiveTrail(config('activetrail.api_key'), $fields);
+            return new ActiveTrail(config('activetrail'));
         });
     }
 }

@@ -11,6 +11,8 @@ class ActiveTrail
 
     protected $key;
 
+    protected $softGroup;
+
     protected $action;
 
     protected $fields = [
@@ -33,10 +35,13 @@ class ActiveTrail
 
     protected $params;
 
-    function __construct($api_key, $fields)
+    function __construct($config)
     {
-        $this->key = $api_key;
-        $this->fields = array_merge($this->fields, $fields);
+        $this->key = $config['api_key'];
+
+        $this->softGroup = $config['softGroup'];
+
+        $this->fields = array_merge($this->fields, $config['fields']);
     }
 
     public function post($type='post')
@@ -146,7 +151,26 @@ class ActiveTrail
     {
         $this->action = "api/contacts";
 
+        if ($this->softGroup) {
+            return $this->softUnsubscribed();
+        }
+
         return $this->status('Unsubscribed')->post();
+    }
+
+    public function softUnsubscribed()
+    {
+        $id = $this->getIdByEmail($this->params['email'])['id'];
+
+        $this->action = "api/contacts/{$id}/groups";
+
+        $groups = array_column($this->post('get'), 'id');
+
+        $this->removeFromGroups($groups, ['status' => 'Subscribed']);
+
+        $response = $this->addToGroup($this->softGroup);
+
+        return ['groupsRemoved' => $groups, 'response' => $response];
     }
 
     public function __call($name, $arguments)

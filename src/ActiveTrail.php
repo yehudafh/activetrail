@@ -65,6 +65,18 @@ class ActiveTrail
         return $this->post();
     }
 
+    public function importGroup($group, $params=null)
+    {
+        $this->action = "api/contacts/Import";
+
+        $this->params = [
+            'group' => $group,
+            'contacts' => $params
+        ];
+
+        return $this->post();
+    }
+
     public function addToGroups($groups=[], $params=[])
     {
         $this->params = array_merge($this->params, $params);

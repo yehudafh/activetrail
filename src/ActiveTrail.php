@@ -65,7 +65,7 @@ class ActiveTrail
         return $this->post();
     }
 
-    public function importGroup($group, $params=null)
+    public function importGroup($group, $params=null, $campaign=null)
     {
         $this->action = "api/contacts/Import";
 
@@ -74,7 +74,27 @@ class ActiveTrail
             'contacts' => $params
         ];
 
+        if ($campaign) {
+            return [
+                'response' => $this->post(),
+                'campaignId' => $campaign,
+                'campaign' => $this->sendCampaing($campaign, array_column($params, 'email'))
+            ];
+        }
+
         return $this->post();
+    }
+
+    public function sendCampaing($id, $emails=[], $ids=[])
+    {
+        $this->action = "api/campaigns/{$id}/Contacts";
+
+        $this->params = [
+            'contacts_ids' => $ids,
+            'contacts_emails' => $emails
+        ];
+
+        return $this->post('put');
     }
 
     public function addToGroups($groups=[], $params=[])
@@ -116,11 +136,21 @@ class ActiveTrail
         return $data;
     }
 
-    public function update($params=[])
+    public function update($params=[], $campaign=null)
     {
         $this->action = "api/contacts";
 
         $this->params = array_merge($this->params, $params);
+
+        if ($campaign) {
+            $email = $this->params['email'];
+
+            return [
+                'response' => $this->post(),
+                'campaignId' => $campaign,
+                'campaign' => $this->sendCampaing($campaign, [$email])
+            ];
+        }
 
         return $this->post();
     }

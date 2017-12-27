@@ -4,14 +4,13 @@ namespace Yehudafh\ActiveTrail;
 
 use GuzzleHttp\Client;
 use InvalidArgumentException;
+use GuzzleHttp\Exception\RequestException;
 
 class ActiveTrail
 {
     protected $base = 'http://webapi.mymarketing.co.il/';
 
     protected $key;
-
-    protected $softGroup;
 
     protected $action;
 
@@ -35,25 +34,28 @@ class ActiveTrail
 
     protected $params;
 
-    function __construct($config)
+    function __construct($api_key, $fields)
     {
-        $this->key = $config['api_key'];
-
-        $this->softGroup = $config['soft_group'];
-
-        $this->fields = array_merge($this->fields, $config['fields']);
+        $this->key = $api_key;
+        $this->fields = array_merge($this->fields, $fields);
     }
 
     public function post($type='post')
     {
         $client = new Client();
 
-        $response = $client->$type($this->base . $this->action, [
-            'headers' => ['Authorization' => $this->key],
-            'json' => $this->params
-        ]);
+
+        try {
+            $response = $client->$type($this->base . $this->action, [
+                'headers' => ['Authorization' => $this->key],
+                'json' => $this->params
+            ]);
+        } catch (RequestException $e) {
+            $response = $e->getResponse();
+        }
 
         return json_decode($response->getBody(), 1);
+
     }
 
     public function addToGroup($group, $params=[])
@@ -63,38 +65,6 @@ class ActiveTrail
         $this->action = "api/groups/$group/members";
 
         return $this->post();
-    }
-
-    public function importGroup($group, $params=null, $campaign=null)
-    {
-        $this->action = "api/contacts/Import";
-
-        $this->params = [
-            'group' => $group,
-            'contacts' => $params
-        ];
-
-        if ($campaign) {
-            return [
-                'response' => $this->post(),
-                'campaignId' => $campaign,
-                'campaign' => $this->sendCampaing($campaign, array_column($params, 'email'))
-            ];
-        }
-
-        return $this->post();
-    }
-
-    public function sendCampaing($id, $emails=[], $ids=[])
-    {
-        $this->action = "api/campaigns/{$id}/Contacts";
-
-        $this->params = [
-            'contacts_ids' => $ids,
-            'contacts_emails' => $emails
-        ];
-
-        return $this->post('put');
     }
 
     public function addToGroups($groups=[], $params=[])
@@ -114,7 +84,11 @@ class ActiveTrail
     {
         $this->params = array_merge($this->params, $params);
 
-        $member = $this->getIdByEmail($this->params['email'])['id'];
+        $member = $this->getIdByEmail($this->params['email'])['id'] ?? null;
+
+        if (!$member) {
+            return;
+        }
 
         $this->action = "api/groups/$group/members/$member";
 
@@ -125,7 +99,11 @@ class ActiveTrail
     {
         $this->params = array_merge($this->params, $params);
 
-        $member = $this->getIdByEmail($this->params['email'])['id'];
+        $member = $this->getIdByEmail($this->params['email'])['id'] ?? null;
+
+        if (!$member) {
+            return;
+        }
 
         foreach ($groups as $group) {
             $this->action = "api/groups/$group/members/$member";
@@ -136,21 +114,11 @@ class ActiveTrail
         return $data;
     }
 
-    public function update($params=[], $campaign=null)
+    public function update($params=[])
     {
         $this->action = "api/contacts";
 
         $this->params = array_merge($this->params, $params);
-
-        if ($campaign) {
-            $email = $this->params['email'];
-
-            return [
-                'response' => $this->post(),
-                'campaignId' => $campaign,
-                'campaign' => $this->sendCampaing($campaign, [$email])
-            ];
-        }
 
         return $this->post();
     }
@@ -162,7 +130,11 @@ class ActiveTrail
 
     public function updateEmail($email, $newEmail)
     {
-        $id = $this->getIdByEmail($email)['id'];
+        $id = $this->getIdByEmail($email)['id'] ?? null;
+
+        if (!$id) {
+            return;
+        }
 
         $this->action = "api/contacts/{$id}";
 
@@ -193,30 +165,7 @@ class ActiveTrail
     {
         $this->action = "api/contacts";
 
-        if ($this->softGroup) {
-            return $this->softUnsubscribed();
-        }
-
         return $this->status('Unsubscribed')->post();
-    }
-
-    public function softUnsubscribed()
-    {
-        $id = $this->getIdByEmail($this->params['email'])['id'];
-
-        $this->action = "api/contacts/{$id}/groups";
-
-        $groups = array_column($this->post('get'), 'id');
-
-        $this->removeFromGroups($groups, ['status' => 'Subscribed']);
-
-        $response = $this->addToGroup($this->softGroup);
-
-        $response['state'] = 'Soft' . $response['state'];
-
-        $response['groupsRemoved'] = $groups;
-
-        return $response;
     }
 
     public function __call($name, $arguments)
